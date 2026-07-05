@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  }
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    background: #07111f;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply rounded-lg border border-white/[0.12] bg-white/[0.08] shadow-2xl shadow-black/30 backdrop-blur-xl;
+  }
+
+  .input {
+    @apply w-full rounded-lg border border-white/[0.12] bg-black/[0.24] px-4 py-3 text-base text-white outline-none transition placeholder:text-slate-500 focus:border-linkedin-400 focus:ring-4 focus:ring-linkedin-500/20;
+  }
+
+  .primary-button {
+    @apply inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-lg bg-linkedin-500 px-5 py-3 text-base font-black text-white shadow-glow transition hover:bg-linkedin-600 disabled:cursor-not-allowed disabled:opacity-70;
+  }
+
+  .ghost-button {
+    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/[0.08] px-4 py-2 text-sm font-bold text-slate-100 transition hover:border-linkedin-400/60 hover:bg-linkedin-500/15;
+  }
+
+  .card-title {
+    @apply text-sm font-bold uppercase tracking-[0.18em] text-slate-200;
+  }
+
+  .badge {
+    @apply rounded-lg border border-linkedin-400/25 bg-linkedin-500/15 px-3 py-2 text-sm font-bold text-cyan-100;
+  }
+}
