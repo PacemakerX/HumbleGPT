@@ -8,7 +8,6 @@ import {
   Flame,
   Loader2,
   MessageSquareQuote,
-  Send,
   Sparkles,
   Trophy,
 } from 'lucide-react';
@@ -25,19 +24,19 @@ type AnalysisResult = {
 };
 
 const loadingMessages = [
-  'Decoding corporate language...',
-  'Measuring thought leadership...',
-  'Detecting strategic humility...',
-  'Counting buzzwords...',
+  'Sharpening the roast...',
+  'Detecting fake humility...',
+  'Counting buzzwords for evidence...',
+  'Loading zero mercy...',
 ];
 
 const footerMessages = [
-  'Somewhere, a recruiter liked this.',
-  'Visibility has increased by 27%.',
-  'Thought leadership levels are rising.',
-  "Congratulations, you've unlocked Professional Storytelling.",
-  'The algorithm has accepted your offering.',
-  'Engagement aura: professionally luminous.',
+  'Somewhere, a recruiter cringed.',
+  'Cringe levels: measurable and rising.',
+  'This post just got dragged professionally.',
+  "Congratulations, you've unlocked Public Roasting.",
+  'The algorithm has been served.',
+  'Engagement aura: brutally exposed.',
 ];
 
 const samplePosts = [
@@ -79,7 +78,7 @@ function App() {
   async function analyzePost(event: React.FormEvent) {
     event.preventDefault();
     if (!post.trim() && !url.trim()) {
-      setError('The translator needs at least one humblebrag to chew on.');
+      setError('The roast engine needs at least one humblebrag to chew on.');
       return;
     }
 
@@ -133,7 +132,7 @@ function App() {
               <Sparkles className="h-5 w-5 text-linkedin-400" />
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-linkedin-400">Workshop Demo</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-linkedin-400">Brutal Roast Mode</p>
               <h1 className="text-2xl font-black tracking-normal sm:text-3xl">LinkedIn -&gt; English</h1>
             </div>
           </div>
@@ -148,11 +147,11 @@ function App() {
             <div className="mb-6 max-w-2xl">
               <p className="text-sm font-bold uppercase tracking-[0.28em] text-cyan-200/80">Corporate decoder</p>
               <h2 className="mt-3 text-4xl font-black leading-tight tracking-normal text-white sm:text-5xl lg:text-6xl">
-                Translate polished ambition into regular human English.
+                Translate polished ambition into regular human English. Brutally.
               </h2>
               <p className="mt-4 text-base leading-7 text-slate-300">
-                Paste the inspirational post. Press the blue button. Receive a workplace-safe roast with measurable
-                thought leadership emissions.
+                Paste the inspirational post or drop a link. Press the blue button. Receive a merciless, no-mercy
+                roast with measurable thought leadership emissions.
               </p>
             </div>
 
@@ -184,8 +183,8 @@ function App() {
               )}
 
               <button className="primary-button" disabled={isLoading} type="submit">
-                {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
-                {isLoading ? loadingMessages[loadingIndex] : 'Translate to English'}
+                {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Flame className="h-5 w-5" />}
+                {isLoading ? loadingMessages[loadingIndex] : 'Roast This Post'}
               </button>
             </form>
           </section>
@@ -206,12 +205,12 @@ function EmptyState({ isLoading }: { isLoading: boolean }) {
         {isLoading ? <Loader2 className="h-9 w-9 animate-spin text-linkedin-400" /> : <MessageSquareQuote className="h-9 w-9 text-linkedin-400" />}
       </div>
       <h3 className="mt-6 text-2xl font-black tracking-normal">
-        {isLoading ? 'The humility scanner is warming up.' : 'Awaiting professional inspiration.'}
+        {isLoading ? 'The roast engine is warming up.' : 'Awaiting a post to destroy.'}
       </h3>
       <p className="mt-3 max-w-md text-sm leading-6 text-slate-300">
         {isLoading
-          ? 'Please remain aligned with stakeholder expectations while the buzzwords are processed.'
-          : 'Your translation cards will appear here with scores, badges, verdicts, and suspiciously supportive comments.'}
+          ? 'Please remain aligned with stakeholder expectations while the humility gets exposed.'
+          : 'Your brutal translation, scores, badges, a verdict, and a suspiciously supportive fake comment will appear here.'}
       </p>
     </div>
   );

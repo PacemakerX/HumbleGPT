@@ -36,22 +36,25 @@ const buzzwords = [
 ];
 
 const achievements = [
-  '🏆 Strategic Humility Master',
-  '📢 Visibility Maximizer',
-  '🚀 Thought Leader Apprentice',
-  '🎤 Conference Selfie Collector',
-  '💼 Corporate Storyteller',
-  '📈 Engagement Pipeline Builder',
-  '🤝 Networking Side Quest Complete',
+  '🏆 Humility LARP Champion',
+  '📢 Engagement Bait Specialist',
+  '🚀 Thought Leader Cosplay, Tier 1',
+  '🎤 Conference Selfie Hoarder',
+  '💼 Personal Brand Mercenary',
+  '📈 Buzzword Supply Chain Manager',
+  '🤝 LinkedIn Clout Farmer',
+  '🔥 Roasted On Sight',
 ];
 
 const verdicts = [
-  'Confidence wearing a humility costume.',
-  'Career update disguised as a life lesson.',
-  'Professional attention seeking executed successfully.',
-  'A humblebrag with excellent stakeholder alignment.',
-  'Personal brand maintenance with inspirational garnish.',
-  'The algorithm has been politely summoned.',
+  'Confidence cosplaying as humility, and everyone can see the seams.',
+  'A career update wearing a hollow life-lesson trench coat.',
+  'Professional attention-seeking, executed with zero self-awareness.',
+  'A humblebrag with a full stakeholder-alignment deck behind it.',
+  'Personal brand maintenance dressed up as inspiration. Nobody is fooled.',
+  'The algorithm has been summoned, and even it is embarrassed.',
+  'This post has main character syndrome and a captive audience.',
+  'Vulnerability, but only the marketable kind.',
 ];
 
 const comments = [
@@ -121,8 +124,8 @@ function scoreText(text: string, detected: string[]) {
   return { authentic, influencer };
 }
 
-function fallbackAnalysis(post: string, url?: string): AnalysisResult {
-  const text = `${post} ${url ?? ''}`.trim();
+function fallbackAnalysis(post: string, url?: string, fetchedContent?: string): AnalysisResult {
+  const text = `${post} ${fetchedContent ?? ''}`.trim() || (url ?? '').trim();
   const detected = buzzwords
     .filter((word) => new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(text))
     .slice(0, 10);
@@ -130,19 +133,19 @@ function fallbackAnalysis(post: string, url?: string): AnalysisResult {
   const { authentic, influencer } = scoreText(text, detected);
   const lower = text.toLowerCase();
 
-  let translation = 'I would like professional visibility, but with tasteful lighting.';
+  let translation = 'I crave professional validation and have lit it dramatically for maximum reach.';
   if (/promoted|new role|new position/.test(lower)) {
-    translation = 'I got promoted and would like maximum professional visibility.';
+    translation = 'I got a slightly better title and would like a standing ovation from strangers.';
   } else if (/laid off|layoff|open to work/.test(lower)) {
-    translation = 'Work got weird, so I am networking with dignity and a fresh banner.';
+    translation = 'I got fired, so I am rebranding the trauma as an inspiring pivot with a fresh banner photo.';
   } else if (/conference|summit|event/.test(lower)) {
-    translation = 'I attended an event and successfully converted coffee into content.';
+    translation = 'I stood near famous people, ate a stale croissant, and am now a thought leader on the subject.';
   } else if (/intern|internship/.test(lower)) {
-    translation = 'I got an internship and my personal brand has entered its pilot season.';
+    translation = 'I fetched coffee for a summer and am treating it like a Nobel Prize acceptance speech.';
   } else if (/founder|startup|building/.test(lower)) {
-    translation = 'I am building something and would appreciate applause before revenue arrives.';
+    translation = 'I have no revenue and a Canva pitch deck, but I would like applause as if I already won.';
   } else if (/failure|rejected|mistake/.test(lower)) {
-    translation = 'A normal setback has been upgraded into a leadership parable.';
+    translation = 'Something ordinary went wrong and I have laundered it into a leadership TED talk.';
   }
 
   return {
@@ -156,6 +159,14 @@ function fallbackAnalysis(post: string, url?: string): AnalysisResult {
   };
 }
 
+function parseScore(value: unknown): number {
+  if (typeof value === 'number') {
+    return value;
+  }
+  const match = String(value ?? '').match(/-?\d+(\.\d+)?/);
+  return match ? Number(match[0]) : 50;
+}
+
 function parseJsonObject(content: string): AnalysisResult {
   const match = content.match(/\{[\s\S]*\}/);
   if (!match) {
@@ -164,8 +175,8 @@ function parseJsonObject(content: string): AnalysisResult {
   const parsed = JSON.parse(match[0]) as AnalysisResult;
   return {
     translation: String(parsed.translation ?? ''),
-    authenticity_score: clampScore(Number(parsed.authenticity_score ?? 50)),
-    corporate_influencer_score: clampScore(Number(parsed.corporate_influencer_score ?? 50)),
+    authenticity_score: clampScore(parseScore(parsed.authenticity_score)),
+    corporate_influencer_score: clampScore(parseScore(parsed.corporate_influencer_score)),
     buzzwords_detected: Array.isArray(parsed.buzzwords_detected) ? parsed.buzzwords_detected.map(String).slice(0, 12) : [],
     verdict: String(parsed.verdict ?? ''),
     achievement_unlocked: String(parsed.achievement_unlocked ?? ''),
@@ -173,13 +184,52 @@ function parseJsonObject(content: string): AnalysisResult {
   };
 }
 
-async function analyzeWithModel(post: string, url?: string): Promise<AnalysisResult> {
-  const apiKey = process.env.OPENAI_API_KEY;
-  const baseUrl = process.env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1';
-  const model = process.env.OPENAI_MODEL ?? 'gpt-4o-mini';
+function stripHtml(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#0?39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+async function fetchUrlContent(url: string): Promise<string> {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return '';
+    }
+    const response = await fetch(parsed.toString(), {
+      redirect: 'follow',
+      signal: AbortSignal.timeout(8000),
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; LinkedInToEnglishBot/1.0)',
+        Accept: 'text/html',
+      },
+    });
+    if (!response.ok) {
+      return '';
+    }
+    const html = await response.text();
+    return stripHtml(html).slice(0, 6000);
+  } catch {
+    return '';
+  }
+}
+
+async function analyzeWithModel(post: string, url: string | undefined, fetchedContent: string): Promise<AnalysisResult> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  const baseUrl = process.env.GEMINI_BASE_URL ?? 'https://generativelanguage.googleapis.com/v1beta/openai';
+  const model = process.env.GEMINI_MODEL ?? 'gemini-flash-latest';
 
   if (!apiKey) {
-    return fallbackAnalysis(post, url);
+    return fallbackAnalysis(post, url, fetchedContent);
   }
 
   const response = await fetch(`${baseUrl.replace(/\/$/, '')}/chat/completions`, {
@@ -190,17 +240,17 @@ async function analyzeWithModel(post: string, url?: string): Promise<AnalysisRes
     },
     body: JSON.stringify({
       model,
-      temperature: 0.85,
+      temperature: 1.0,
       response_format: { type: 'json_object' },
       messages: [
         {
           role: 'system',
           content:
-            'You analyze LinkedIn posts for a playful app called LinkedIn to English. Roast the post, not the author. Be witty and sarcastic, never mean. Never attack personal characteristics. Focus on LinkedIn culture and corporate buzzwords. Keep jokes workplace-safe. Keep responses concise. Return only valid JSON with keys: translation, authenticity_score, corporate_influencer_score, buzzwords_detected, verdict, achievement_unlocked, linkedin_comment_you_will_probably_see.',
+            "You are the meanest, funniest roast comedian alive, running the roast engine for a playful app called LinkedIn to English. Every post gets torched: the humblebragging, the fake vulnerability, the buzzword soup, the engagement-bait, the thought-leadership cosplay, the fauxthenticity, the 'here's what my toddler taught me about Q3 revenue' nonsense. Use sharp, specific, mocking sarcasm — comparisons, mock-quotes, exaggerated impressions of the author's inner monologue, callbacks to exactly what they wrote. No hedging, no compliments, no 'but also this is impressive' softening, no polite disclaimers, no therapy-speak. Assume every ounce of sincerity in the post is a performance and roast it accordingly. Push every field brutally, including the verdict and achievement_unlocked — those should sting as much as the translation. One hard line, non-negotiable: never attack the poster's protected characteristics (race, gender, disability, etc.) and never frame it as an attack on their worth as a human being — the target is the writing and LinkedIn culture, not the person. Keep responses concise. Return only valid JSON with keys: translation (string), authenticity_score (a bare integer 0-100, no percent sign or units), corporate_influencer_score (a bare integer 0-100, no percent sign or units), buzzwords_detected (array of strings), verdict (string), achievement_unlocked (string), linkedin_comment_you_will_probably_see (string).",
         },
         {
           role: 'user',
-          content: `LinkedIn post text:\n${post || '(none pasted)'}\n\nLinkedIn URL:\n${url || '(none provided)'}`,
+          content: `LinkedIn post text (pasted by user):\n${post || '(none pasted)'}\n\nContent fetched from the URL:\n${fetchedContent || '(none fetched)'}\n\nLinkedIn URL:\n${url || '(none provided)'}`,
         },
       ],
     }),
@@ -242,7 +292,19 @@ const server = http.createServer(async (request, response) => {
       return;
     }
 
-    const result = await analyzeWithModel(post, url);
+    let fetchedContent = '';
+    if (url) {
+      fetchedContent = await fetchUrlContent(url);
+      if (!post && fetchedContent.length < 40) {
+        sendJson(response, 422, {
+          error:
+            "That link is hiding behind LinkedIn's login wall, as cowardly corporate content often does. Paste the post text instead so the roast has something to chew on.",
+        });
+        return;
+      }
+    }
+
+    const result = await analyzeWithModel(post, url, fetchedContent);
     sendJson(response, 200, result);
   } catch (error) {
     console.error(error);

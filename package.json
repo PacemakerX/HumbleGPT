@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "client": "vite --host 0.0.0.0",
-    "server": "PORT=${API_PORT:-8799} tsx watch server/index.ts",
+    "server": "PORT=${API_PORT:-8799} tsx watch --env-file=.env server/index.ts",
     "build": "tsc && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
